@@ -1,6 +1,5 @@
 package maps
 
-/*
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -337,4 +336,3 @@ abstract class CustomMutableMapTest {
         return entries
     }
 }
-*/
