@@ -242,10 +242,6 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
     @Override
     public V remove(K key) {
         if (head == null) return null;
-        if (comparator.compare(head.getKey(), key) == 0 && head.subTrees().isEmpty()) {
-            head = null;
-            return null;
-        }
         TreeMapNode<K, V> parent = head;
         TreeMapNode<K, V> current = head;
         while (current != null) {
@@ -253,16 +249,24 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
                 V val = current.getValue();
                 ArrayList<TreeMapNode<K, V>> subTrees = current.subTrees();
                 if (subTrees.isEmpty()) {
-                    if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
-                        parent.setLeft(null);
+                    if (current == head) {
+                        head = null;
                     } else {
-                        parent.setRight(null);
+                        if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
+                            parent.setLeft(null);
+                        } else {
+                            parent.setRight(null);
+                        }
                     }
                 } else if (subTrees.size() == 1) {
-                    if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
-                        parent.setLeft(subTrees.get(0));
+                    if (current == head) {
+                        head = subTrees.get(0);
                     } else {
-                        parent.setRight(subTrees.get(0));
+                        if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
+                            parent.setLeft(subTrees.get(0));
+                        } else {
+                            parent.setRight(subTrees.get(0));
+                        }
                     }
                 } else {
                     Iterable<Entry<K, V>> entries = getEntries();
