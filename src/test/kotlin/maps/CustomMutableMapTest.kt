@@ -55,9 +55,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test entries after some putting`() {
         val map = emptyCustomMutableMapStringInt()
-        val entries = (1..100).map {
-            Entry(it.toString(), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(it.toString(), it)
+            }
         entries.forEach(map::put)
         assertEquals(entries, map.entries.sortedBy { it.value })
     }
@@ -65,9 +66,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test entries after some setting`() {
         val map = emptyCustomMutableMapStringInt()
-        val entries = (1..100).map {
-            Entry(it.toString(), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(it.toString(), it)
+            }
         entries.forEach {
             map.set(it.key, it.value)
         }
@@ -92,9 +94,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test values after some putting`() {
         val map = emptyCustomMutableMapStringInt()
-        val entries = (1..100).map {
-            Entry(it.toString(), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(it.toString(), it)
+            }
         entries.forEach(map::put)
         val values = entries.map { it.value }
         assertEquals(values, map.values.sorted())
@@ -103,9 +106,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test values after some setting`() {
         val map = emptyCustomMutableMapStringInt()
-        val entries = (1..100).map {
-            Entry(it.toString(), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(it.toString(), it)
+            }
         entries.forEach {
             map.set(it.key, it.value)
         }
@@ -132,9 +136,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test keys after some putting`() {
         val map = emptyCustomMutableMapStringInt()
-        val entries = (1..100).map {
-            Entry(it.toString(), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(it.toString(), it)
+            }
         entries.forEach(map::put)
         val keys = entries.map { it.key }
         assertEquals(keys.sorted(), map.keys.sorted())
@@ -143,9 +148,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test keys after some setting`() {
         val map = emptyCustomMutableMapStringInt()
-        val entries = (1..100).map {
-            Entry(it.toString(), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(it.toString(), it)
+            }
         entries.forEach {
             map.set(it.key, it.value)
         }
@@ -164,9 +170,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test entries after some putting (collision prone)`() {
         val map = emptyCustomMutableMapCollidingStringInt()
-        val entries = (1..100).map {
-            Entry(CollidingString(it.toString()), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(CollidingString(it.toString()), it)
+            }
         entries.forEach(map::put)
         assertEquals(entries, map.entries.sortedBy { it.value })
     }
@@ -174,9 +181,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test entries after some setting (collision prone)`() {
         val map = emptyCustomMutableMapCollidingStringInt()
-        val entries = (1..100).map {
-            Entry(CollidingString(it.toString()), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(CollidingString(it.toString()), it)
+            }
         entries.forEach {
             map.set(it.key, it.value)
         }
@@ -193,9 +201,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test values after some putting (collision prone)`() {
         val map = emptyCustomMutableMapCollidingStringInt()
-        val entries = (1..100).map {
-            Entry(CollidingString(it.toString()), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(CollidingString(it.toString()), it)
+            }
         entries.forEach(map::put)
         val values = entries.map { it.value }
         assertEquals(values, map.values.sorted())
@@ -204,9 +213,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test values after some setting (collision prone)`() {
         val map = emptyCustomMutableMapCollidingStringInt()
-        val entries = (1..100).map {
-            Entry(CollidingString(it.toString()), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(CollidingString(it.toString()), it)
+            }
         entries.forEach {
             map.set(it.key, it.value)
         }
@@ -225,9 +235,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test keys after some putting (collision prone)`() {
         val map = emptyCustomMutableMapCollidingStringInt()
-        val entries = (1..100).map {
-            Entry(CollidingString(it.toString()), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(CollidingString(it.toString()), it)
+            }
         entries.forEach(map::put)
         val keys = entries.map { it.key }
         assertEquals(keys.sorted(), map.keys.sorted())
@@ -236,9 +247,10 @@ abstract class CustomMutableMapTest {
     @Test
     fun `test keys after some setting (collision prone)`() {
         val map = emptyCustomMutableMapCollidingStringInt()
-        val entries = (1..100).map {
-            Entry(CollidingString(it.toString()), it)
-        }
+        val entries =
+            (1..100).map {
+                Entry(CollidingString(it.toString()), it)
+            }
         entries.forEach {
             map.set(it.key, it.value)
         }
@@ -256,6 +268,7 @@ abstract class CustomMutableMapTest {
 
     class CollidingString(val string: String) : Comparable<CollidingString> {
         override fun hashCode(): Int = 5
+
         override fun compareTo(other: CollidingString): Int = string.compareTo(other.string)
 
         override fun equals(other: Any?): Boolean {
@@ -293,11 +306,12 @@ abstract class CustomMutableMapTest {
     }
 
     private fun createExpectedEntriesFromPuttingRemovingAndSetting(): List<Entry<String, Int>> {
-        val entries = (1..100).map {
-            Entry(it.toString(), it)
-        }.filter {
-            it.value % 2 != 0 || it.value % 4 == 0
-        }
+        val entries =
+            (1..100).map {
+                Entry(it.toString(), it)
+            }.filter {
+                it.value % 2 != 0 || it.value % 4 == 0
+            }
         return entries
     }
 
@@ -328,11 +342,12 @@ abstract class CustomMutableMapTest {
     }
 
     private fun createCollisionProneExpectedEntriesFromPuttingRemovingAndSetting(): List<Entry<CollidingString, Int>> {
-        val entries = (1..100).map {
-            Entry(CollidingString(it.toString()), it)
-        }.filter {
-            it.value % 2 != 0 || it.value % 4 == 0
-        }
+        val entries =
+            (1..100).map {
+                Entry(CollidingString(it.toString()), it)
+            }.filter {
+                it.value % 2 != 0 || it.value % 4 == 0
+            }
         return entries
     }
 }

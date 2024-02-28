@@ -18,7 +18,7 @@ class ExceptionMonitoringThread(
         try {
             body()
         } catch (exception: Exception) {
-            lock.withLock() {
+            lock.withLock {
                 exceptions.add(exception)
             }
         }
@@ -79,14 +79,15 @@ abstract class ThreadSafeCustomMutableMapTest {
             }
             val exceptions = mutableListOf<Exception>()
             val lock = ReentrantLock()
-            val threads = threadBodies.map {
-                Thread(
-                    ExceptionMonitoringThread(
-                        exceptions,
-                        lock,
-                    ) { it(theMap) },
-                )
-            }
+            val threads =
+                threadBodies.map {
+                    Thread(
+                        ExceptionMonitoringThread(
+                            exceptions,
+                            lock,
+                        ) { it(theMap) },
+                    )
+                }
             threads.forEach(Thread::start)
             threads.forEach(Thread::join)
             if (exceptions.isNotEmpty()) {
@@ -138,26 +139,28 @@ abstract class ThreadSafeCustomMutableMapTest {
     @Test
     fun `eight threads add, eight threads remove`() {
         val chunkSize = 1 shl 12
-        val adderBodies: List<(CustomMutableMap<Int, String>) -> Unit> = (0..<8).map { seed ->
-            { theMap ->
-                addElementsInRandomOrder(
-                    map = theMap,
-                    lowerBound = 0,
-                    numElements = 2 * chunkSize,
-                    seed = seed,
-                )
+        val adderBodies: List<(CustomMutableMap<Int, String>) -> Unit> =
+            (0..<8).map { seed ->
+                { theMap ->
+                    addElementsInRandomOrder(
+                        map = theMap,
+                        lowerBound = 0,
+                        numElements = 2 * chunkSize,
+                        seed = seed,
+                    )
+                }
             }
-        }
-        val removerBodies: List<(CustomMutableMap<Int, String>) -> Unit> = (8..<16).map { seed ->
-            { theMap ->
-                removeElementsInRandomOrder(
-                    map = theMap,
-                    lowerBound = chunkSize,
-                    numElements = 3 * chunkSize,
-                    seed = seed,
-                )
+        val removerBodies: List<(CustomMutableMap<Int, String>) -> Unit> =
+            (8..<16).map { seed ->
+                { theMap ->
+                    removeElementsInRandomOrder(
+                        map = theMap,
+                        lowerBound = chunkSize,
+                        numElements = 3 * chunkSize,
+                        seed = seed,
+                    )
+                }
             }
-        }
         runConcurrencyTest(
             repeatRuns = 4,
             threadBodies = adderBodies + removerBodies,

@@ -23,5 +23,5 @@ fun main() {
 //            assertNull(map.set(i.toString(), i))
 //        }
 //    }
-    map.entries.sortedBy{it.key.toInt()}.forEach { println(it) }
+    map.entries.sortedBy { it.key.toInt() }.forEach { println(it) }
 }

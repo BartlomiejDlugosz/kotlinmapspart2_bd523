@@ -71,10 +71,10 @@ open class CustomLinkedList<T> : MutableIterable<T> {
 fun main() {
     val cll = CustomLinkedList<List<Double>>()
     cll.add(listOf(4.0))
-    cll.add(listOf(9.9,1.1))
+    cll.add(listOf(9.9, 1.1))
     cll.add(listOf(3.2))
     val cllIterator = cll.iterator()
-    while(cllIterator.hasNext()) {
+    while (cllIterator.hasNext()) {
         cllIterator.next()
         cllIterator.remove()
     }

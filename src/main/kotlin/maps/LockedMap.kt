@@ -30,13 +30,19 @@ open class LockedMap<K, V>(private val map: CustomMutableMap<K, V>) : CustomMuta
 
     override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
 
-    override fun put(key: K, value: V): V? {
+    override fun put(
+        key: K,
+        value: V,
+    ): V? {
         lock.withLock {
             return map.put(key, value)
         }
     }
 
-    override fun set(key: K, value: V): V? = put(key, value)
+    override fun set(
+        key: K,
+        value: V,
+    ): V? = put(key, value)
 
     override fun get(key: K): V? {
         lock.withLock { return map.get(key) }

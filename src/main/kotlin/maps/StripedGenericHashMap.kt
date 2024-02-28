@@ -10,9 +10,12 @@ abstract class StripedGenericHashMap<K, V>(final override val size: Int = 32, fi
 
     private var numberOfEntries = 0
 
-    val locks: List<Lock> = List(size) {ReentrantLock()}
+    val locks: List<Lock> = List(size) { ReentrantLock() }
 
-    private fun hashingFunction(key: K, size: Int = buckets.size): Int = key.hashCode() and (size - 1)
+    private fun hashingFunction(
+        key: K,
+        size: Int = buckets.size,
+    ): Int = key.hashCode() and (size - 1)
 
     override val entries: Iterable<Entry<K, V>>
         get() = buckets.flatMap { it.entries }
@@ -22,8 +25,6 @@ abstract class StripedGenericHashMap<K, V>(final override val size: Int = 32, fi
     override val values: Iterable<V>
         get() = buckets.flatMap { it.values }
 
-
-
     override fun contains(key: K): Boolean = get(key) != null
 
     override fun get(key: K): V? {
@@ -32,9 +33,15 @@ abstract class StripedGenericHashMap<K, V>(final override val size: Int = 32, fi
         }
     }
 
-    override fun set(key: K, value: V): V? = put(key, value)
+    override fun set(
+        key: K,
+        value: V,
+    ): V? = put(key, value)
 
-    override fun put(key: K, value: V): V? {
+    override fun put(
+        key: K,
+        value: V,
+    ): V? {
         if (numberOfEntries + 1 > buckets.size * loadFactor) {
             locks.forEach { it.lock() }
             if (numberOfEntries + 1 > buckets.size * loadFactor) {

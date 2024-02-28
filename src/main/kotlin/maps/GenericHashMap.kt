@@ -11,7 +11,10 @@ abstract class GenericHashMap<K, V> : CustomMutableMap<K, V> {
     abstract val size: Int
     abstract val loadFactor: Double
 
-    private fun hashingFunction(key: K, size: Int = buckets.size): Int = key.hashCode() and (size - 1)
+    private fun hashingFunction(
+        key: K,
+        size: Int = buckets.size,
+    ): Int = key.hashCode() and (size - 1)
 
     override val entries: Iterable<Entry<K, V>>
         get() = buckets.flatMap { it.entries }
@@ -21,18 +24,22 @@ abstract class GenericHashMap<K, V> : CustomMutableMap<K, V> {
     override val values: Iterable<V>
         get() = buckets.flatMap { it.values }
 
-
-
     override fun contains(key: K): Boolean = get(key) != null
 
     override fun get(key: K): V? = buckets[hashingFunction(key)][key]
 
-    override fun set(key: K, value: V): V? = put(key, value)
+    override fun set(
+        key: K,
+        value: V,
+    ): V? = put(key, value)
 
-    override fun put(key: K, value: V): V? {
+    override fun put(
+        key: K,
+        value: V,
+    ): V? {
         if (numberOfEntries + 1 > buckets.size * loadFactor) {
             val newBuckets = Array(buckets.size * 2) { bucketFactory() }
-            entries.forEach{ newBuckets[hashingFunction(it.key, newBuckets.size)].put(it) }
+            entries.forEach { newBuckets[hashingFunction(it.key, newBuckets.size)].put(it) }
             buckets = newBuckets
         }
 
