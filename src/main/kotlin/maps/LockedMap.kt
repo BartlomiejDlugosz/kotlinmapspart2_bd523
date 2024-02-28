@@ -9,36 +9,34 @@ open class LockedMap<K, V>(private val map: CustomMutableMap<K, V>) : CustomMuta
 
     override val entries: Iterable<Entry<K, V>>
         get() {
-            lock.withLock { return map.entries }
+            lock.withLock { return map.entries.toSet() }
         }
     override val keys: Iterable<K>
         get() {
-            lock.withLock { return map.keys }
+            lock.withLock { return map.keys.toSet() }
         }
     override val values: Iterable<V>
         get() {
-            lock.withLock { return map.values }
+            lock.withLock { return map.values.toSet() }
         }
 
-    override fun contains(key: K): Boolean {
-        lock.withLock { return map.contains(key) }
-    }
+    override fun contains(key: K): Boolean = get(key) != null
 
     override fun remove(key: K): V? {
-        lock.withLock { return map.remove(key) }
+        lock.withLock {
+            return map.remove(key)
+        }
     }
 
-    override fun put(entry: Entry<K, V>): V? {
-        lock.withLock { return map.put(entry) }
-    }
+    override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
 
     override fun put(key: K, value: V): V? {
-        lock.withLock { return map.put(key, value) }
+        lock.withLock {
+            return map.put(key, value)
+        }
     }
 
-    override fun set(key: K, value: V): V? {
-        lock.withLock { return map.set(key, value) }
-    }
+    override fun set(key: K, value: V): V? = put(key, value)
 
     override fun get(key: K): V? {
         lock.withLock { return map.get(key) }

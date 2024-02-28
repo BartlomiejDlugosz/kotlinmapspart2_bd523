@@ -5,13 +5,15 @@ typealias BucketFactory<K, V> = () -> CustomMutableMap<K, V>
 abstract class GenericHashMap<K, V>(private val bucketFactory: BucketFactory<K, V>) : CustomMutableMap<K, V> {
     abstract var buckets: Array<CustomMutableMap<K, V>>
 
+    private var numberOfEntries = 0
+
     abstract val size: Int
     abstract val loadFactor: Double
 
     private fun hashingFunction(key: K, size: Int = buckets.size): Int = key.hashCode() and (size - 1)
 
     override val entries: Iterable<Entry<K, V>>
-        get() = buckets.flatMap { (it.keys zip (it.values)).map{Entry(it.first, it.second)} }
+        get() = buckets.flatMap { it.entries }
 
     override val keys: Iterable<K>
         get() = buckets.flatMap { it.keys }
@@ -27,7 +29,7 @@ abstract class GenericHashMap<K, V>(private val bucketFactory: BucketFactory<K, 
     override fun set(key: K, value: V): V? = put(key, value)
 
     override fun put(key: K, value: V): V? {
-        if (keys.count() + 1 > buckets.size * loadFactor) {
+        if (numberOfEntries + 1 > buckets.size * loadFactor) {
             val newBuckets = Array(buckets.size * 2) { bucketFactory() }
             entries.forEach{ newBuckets[hashingFunction(it.key, newBuckets.size)].put(it) }
             buckets = newBuckets
@@ -36,10 +38,12 @@ abstract class GenericHashMap<K, V>(private val bucketFactory: BucketFactory<K, 
         val bucket = buckets[hashingFunction(key)]
         if (bucket[key] == null) {
             bucket.put(key, value)
+            numberOfEntries++
             return null
         }
         val removed = bucket.remove(key)
         bucket.put(key, value)
+        numberOfEntries++
         return removed
     }
 
@@ -50,6 +54,7 @@ abstract class GenericHashMap<K, V>(private val bucketFactory: BucketFactory<K, 
         if (bucket[key] == null) {
             return null
         }
+        numberOfEntries--
         return bucket.remove(key)
     }
 }

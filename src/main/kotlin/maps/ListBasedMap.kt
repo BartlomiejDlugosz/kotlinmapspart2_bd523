@@ -1,5 +1,7 @@
 package maps
 
+import maps.maps.CustomLinkedList
+
 class ListBasedMap<K, V> : CustomMutableMap<K, V> {
     override val entries = CustomLinkedList<Entry<K, V>>()
 

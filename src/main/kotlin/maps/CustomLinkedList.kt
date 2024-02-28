@@ -1,4 +1,4 @@
-package maps
+package maps.maps
 
 interface Node<T> {
     var next: Node<T>?
@@ -46,7 +46,6 @@ open class CustomLinkedList<T> : MutableIterable<T> {
                 if (!hasNext()) throw NoSuchElementException()
                 if (!removedLast) {
                     lastItem = current
-
                 }
                 current = nextItem
                 nextItem = current?.next
