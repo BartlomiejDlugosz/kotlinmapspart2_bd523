@@ -2,13 +2,13 @@ package maps
 
 typealias BucketFactory<K, V> = () -> CustomMutableMap<K, V>
 
-abstract class GenericHashMap<K, V>(val bucketFactory: BucketFactory<K, V>, size: Int, val loadFactor: Double) : CustomMutableMap<K, V> {
-    protected var buckets: Array<CustomMutableMap<K, V>> = Array(size) { bucketFactory() }
+abstract class GenericHashMap<K, V>(val bucketFactory: BucketFactory<K, V>, startingSize: Int, val loadFactor: Double) : CustomMutableMap<K, V> {
+    protected var buckets: Array<CustomMutableMap<K, V>> = Array(startingSize) { bucketFactory() }
 
-    private var numberOfEntries = 0
+    private var size = 0
 
     init {
-        if (size and (size - 1) != 0) throw IllegalArgumentException("Please make sure the size is a power of 2")
+        if (startingSize and (startingSize - 1) != 0) throw IllegalArgumentException("Please make sure the size is a power of 2")
     }
 
     private fun hashingFunction(
@@ -33,25 +33,24 @@ abstract class GenericHashMap<K, V>(val bucketFactory: BucketFactory<K, V>, size
         value: V,
     ): V? = put(key, value)
 
+    private fun resize() {
+        val newBuckets = Array(buckets.size * 2) { bucketFactory() }
+        entries.forEach { newBuckets[hashingFunction(it.key, newBuckets.size)].put(it) }
+        buckets = newBuckets
+    }
+
     override fun put(
         key: K,
         value: V,
     ): V? {
-        if (numberOfEntries + 1 > buckets.size * loadFactor) {
-            val newBuckets = Array(buckets.size * 2) { bucketFactory() }
-            entries.forEach { newBuckets[hashingFunction(it.key, newBuckets.size)].put(it) }
-            buckets = newBuckets
+        if (size + 1 > buckets.size * loadFactor) {
+            resize()
         }
 
         val bucket = buckets[hashingFunction(key)]
-        if (bucket[key] == null) {
-            bucket.put(key, value)
-            numberOfEntries++
-            return null
-        }
-        val removed = bucket.remove(key)
+        val removed: V? = bucket.remove(key)
         bucket.put(key, value)
-        numberOfEntries++
+        size++
         return removed
     }
 
@@ -62,7 +61,7 @@ abstract class GenericHashMap<K, V>(val bucketFactory: BucketFactory<K, V>, size
         if (bucket[key] == null) {
             return null
         }
-        numberOfEntries--
+        size--
         return bucket.remove(key)
     }
 }

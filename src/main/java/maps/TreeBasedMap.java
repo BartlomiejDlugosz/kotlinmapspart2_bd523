@@ -284,17 +284,11 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
                 return val;
             }
             parent = current;
-            if (comparator.compare(current.getKey(), key) > 0) {
-                current = current.getLeft();
-            } else {
-                current = current.getRight();
-            }
+            current = comparator.compare(current.getKey(), key) > 0 ? current.getLeft() : current.getRight();
         }
         return null;
     }
 
     @Override
-    public boolean contains(K key) {
-        return get(key) != null;
-    }
+    public boolean contains(K key) { return get(key) != null; }
 }

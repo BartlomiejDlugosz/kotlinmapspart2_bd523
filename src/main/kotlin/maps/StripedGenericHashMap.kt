@@ -20,12 +20,33 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
     ): Int = key.hashCode() and (size - 1)
 
     override val entries: Iterable<Entry<K, V>>
-        get() = buckets.flatMap { it.entries }
+        get() {
+            try {
+                locks.forEach { it.lock() }
+                return buckets.flatMap { it.entries }
+            } finally {
+                locks.forEach { it.unlock() }
+            }
+        }
 
     override val keys: Iterable<K>
-        get() = buckets.flatMap { it.keys }
+        get() {
+            try {
+                locks.forEach { it.lock() }
+                return buckets.flatMap { it.keys }
+            } finally {
+                locks.forEach { it.unlock() }
+            }
+        }
     override val values: Iterable<V>
-        get() = buckets.flatMap { it.values }
+        get() {
+            try {
+                locks.forEach { it.lock() }
+                return buckets.flatMap { it.values }
+            } finally {
+                locks.forEach { it.unlock() }
+            }
+        }
 
     private fun resize() {
         try {
@@ -60,14 +81,9 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
         if (numberOfEntries.get() + 1 > buckets.size * loadFactor) {
             resize()
         }
-
-        locks[hashingFunction(key) % locks.size].withLock {
-            val bucket = buckets[hashingFunction(key)]
-            if (bucket[key] == null) {
-                bucket.put(key, value)
-                numberOfEntries.incrementAndGet()
-                return null
-            }
+        val hash = hashingFunction(key)
+        locks[hash % locks.size].withLock {
+            val bucket = buckets[hash]
             val removed = bucket.remove(key)
             bucket.put(key, value)
             numberOfEntries.incrementAndGet()
@@ -78,13 +94,9 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
     override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
 
     override fun remove(key: K): V? {
-        locks[hashingFunction(key) % locks.size].withLock {
-            val bucket = buckets[hashingFunction(key)]
-            if (bucket[key] == null) {
-                return null
-            }
+        locks[hashingFunction(key) and (locks.size - 1)].withLock {
             numberOfEntries.decrementAndGet()
-            return bucket.remove(key)
+            return buckets[hashingFunction(key)].remove(key)
         }
     }
 }

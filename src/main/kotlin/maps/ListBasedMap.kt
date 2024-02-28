@@ -19,10 +19,7 @@ class ListBasedMap<K, V> : CustomMutableMap<K, V> {
         key: K,
         value: V,
     ): V? {
-        var removed: V? = null
-        if (contains(key)) {
-            removed = remove(key)
-        }
+        val removed: V? = remove(key)
         entries.add(Entry(key, value))
         return removed
     }
@@ -41,5 +38,5 @@ class ListBasedMap<K, V> : CustomMutableMap<K, V> {
         return null
     }
 
-    override fun contains(key: K): Boolean = entries.firstOrNull { it.key == key }?.value != null
+    override fun contains(key: K): Boolean = get(key) != null
 }

@@ -45,7 +45,6 @@ open class CustomLinkedList<T> : MutableIterable<T> {
             override fun next(): T {
                 if (!hasNext()) throw NoSuchElementException()
 
-                // Move everything forward ONE step
                 lastItem = current
                 current = nextItem
                 nextItem = current?.next
@@ -58,7 +57,6 @@ open class CustomLinkedList<T> : MutableIterable<T> {
                 if (lastItem == null) throw UnsupportedOperationException()
                 lastItem?.next = nextItem
 
-                // Reset state for consistency
                 current = lastItem
                 nextItem = lastItem?.next
 
