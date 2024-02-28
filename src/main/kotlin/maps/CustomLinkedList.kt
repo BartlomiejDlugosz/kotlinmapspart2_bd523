@@ -1,4 +1,4 @@
-package maps.maps
+package maps
 
 interface Node<T> {
     var next: Node<T>?

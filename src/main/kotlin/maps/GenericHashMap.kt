@@ -2,14 +2,14 @@ package maps
 
 typealias BucketFactory<K, V> = () -> CustomMutableMap<K, V>
 
-abstract class GenericHashMap<K, V> : CustomMutableMap<K, V> {
-    abstract val bucketFactory: BucketFactory<K, V>
-    abstract var buckets: Array<CustomMutableMap<K, V>>
+abstract class GenericHashMap<K, V>(val bucketFactory: BucketFactory<K, V>, size: Int, val loadFactor: Double) : CustomMutableMap<K, V> {
+    protected var buckets: Array<CustomMutableMap<K, V>> = Array(size) { bucketFactory() }
 
     private var numberOfEntries = 0
 
-    abstract val size: Int
-    abstract val loadFactor: Double
+    init {
+        if (size and (size - 1) != 0) throw IllegalArgumentException("Please make sure the size is a power of 2")
+    }
 
     private fun hashingFunction(
         key: K,
@@ -58,7 +58,7 @@ abstract class GenericHashMap<K, V> : CustomMutableMap<K, V> {
     override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
 
     override fun remove(key: K): V? {
-        val bucket = buckets[hashingFunction(key)] ?: return null
+        val bucket = buckets[hashingFunction(key)]
         if (bucket[key] == null) {
             return null
         }

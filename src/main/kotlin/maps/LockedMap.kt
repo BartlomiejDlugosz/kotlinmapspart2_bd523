@@ -45,6 +45,6 @@ open class LockedMap<K, V>(private val map: CustomMutableMap<K, V>) : CustomMuta
     ): V? = put(key, value)
 
     override fun get(key: K): V? {
-        lock.withLock { return map.get(key) }
+        lock.withLock { return map[key] }
     }
 }

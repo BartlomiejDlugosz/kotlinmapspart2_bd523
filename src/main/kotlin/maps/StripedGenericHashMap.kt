@@ -1,16 +1,18 @@
 package maps
 
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
-abstract class StripedGenericHashMap<K, V>(final override val size: Int = 32, final override val loadFactor: Double = 0.75) : GenericHashMap<K, V>() {
-    override val bucketFactory: BucketFactory<K, V> = { ListBasedMap() }
-    abstract override var buckets: Array<CustomMutableMap<K, V>>
+abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, size: Int = 32, loadFactor: Double = 0.75) : GenericHashMap<K, V>(
+    bucketFactory,
+    size,
+    loadFactor,
+) {
+    private var numberOfEntries: AtomicInteger = AtomicInteger(0)
 
-    private var numberOfEntries = 0
-
-    val locks: List<Lock> = List(size) { ReentrantLock() }
+    private val locks: List<Lock> = List(size) { ReentrantLock() }
 
     private fun hashingFunction(
         key: K,
@@ -24,6 +26,19 @@ abstract class StripedGenericHashMap<K, V>(final override val size: Int = 32, fi
         get() = buckets.flatMap { it.keys }
     override val values: Iterable<V>
         get() = buckets.flatMap { it.values }
+
+    private fun resize() {
+        try {
+            locks.forEach { it.lock() }
+            if (numberOfEntries.get() + 1 > buckets.size * loadFactor) {
+                val newBuckets = Array(buckets.size * 2) { bucketFactory() }
+                entries.forEach { newBuckets[hashingFunction(it.key, newBuckets.size)].put(it) }
+                buckets = newBuckets
+            }
+        } finally {
+            locks.forEach { it.unlock() }
+        }
+    }
 
     override fun contains(key: K): Boolean = get(key) != null
 
@@ -42,26 +57,20 @@ abstract class StripedGenericHashMap<K, V>(final override val size: Int = 32, fi
         key: K,
         value: V,
     ): V? {
-        if (numberOfEntries + 1 > buckets.size * loadFactor) {
-            locks.forEach { it.lock() }
-            if (numberOfEntries + 1 > buckets.size * loadFactor) {
-                val newBuckets = Array(buckets.size * 2) { bucketFactory() }
-                entries.forEach { newBuckets[hashingFunction(it.key, newBuckets.size)].put(it) }
-                buckets = newBuckets
-            }
-            locks.forEach { it.unlock() }
+        if (numberOfEntries.get() + 1 > buckets.size * loadFactor) {
+            resize()
         }
 
         locks[hashingFunction(key) % locks.size].withLock {
             val bucket = buckets[hashingFunction(key)]
             if (bucket[key] == null) {
                 bucket.put(key, value)
-                numberOfEntries++
+                numberOfEntries.incrementAndGet()
                 return null
             }
             val removed = bucket.remove(key)
             bucket.put(key, value)
-            numberOfEntries++
+            numberOfEntries.incrementAndGet()
             return removed
         }
     }
@@ -70,11 +79,11 @@ abstract class StripedGenericHashMap<K, V>(final override val size: Int = 32, fi
 
     override fun remove(key: K): V? {
         locks[hashingFunction(key) % locks.size].withLock {
-            val bucket = buckets[hashingFunction(key)] ?: return null
+            val bucket = buckets[hashingFunction(key)]
             if (bucket[key] == null) {
                 return null
             }
-            numberOfEntries--
+            numberOfEntries.decrementAndGet()
             return bucket.remove(key)
         }
     }
