@@ -20,16 +20,16 @@ class ListBasedMap<K, V> : CustomMutableMap<K, V> {
     override fun put(
         key: K,
         value: V,
-    ): V? = put(Entry(key, value))
-
-    override fun put(entry: Entry<K, V>): V? {
+    ): V? {
         var removed: V? = null
-        if (contains(entry.key)) {
-            removed = remove(entry.key)
+        if (contains(key)) {
+            removed = remove(key)
         }
-        entries.add(entry)
+        entries.add(Entry(key, value))
         return removed
     }
+
+    override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
 
     override fun remove(key: K): V? {
         val entriesIterator = entries.iterator()

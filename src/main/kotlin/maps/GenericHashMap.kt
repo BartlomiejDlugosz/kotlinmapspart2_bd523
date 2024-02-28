@@ -2,7 +2,8 @@ package maps
 
 typealias BucketFactory<K, V> = () -> CustomMutableMap<K, V>
 
-abstract class GenericHashMap<K, V>(private val bucketFactory: BucketFactory<K, V>) : CustomMutableMap<K, V> {
+abstract class GenericHashMap<K, V> : CustomMutableMap<K, V> {
+    abstract val bucketFactory: BucketFactory<K, V>
     abstract var buckets: Array<CustomMutableMap<K, V>>
 
     private var numberOfEntries = 0
