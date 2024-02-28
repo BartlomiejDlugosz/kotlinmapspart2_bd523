@@ -5,7 +5,6 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
-
 class TreeMapNode<K, V> {
     private K key;
     private V value ;
@@ -22,7 +21,7 @@ class TreeMapNode<K, V> {
     private TreeMapNode<K, V> right = null;
 
     Entry<K, V> getEntry() {
-        return new Entry(this.key, this.value);
+        return new Entry<>(this.key, this.value);
     }
 
     void setLeft(@Nullable TreeMapNode<K, V> left) {
@@ -59,50 +58,58 @@ class TreeMapNode<K, V> {
         this.value = value;
     }
 
-    TreeMapNode<K, V> add(K key, V value, Comparator<K> comparator) {
-        TreeMapNode<K, V> nextNode;
+    V add(K key, V value, Comparator<K> comparator) {
+        if (comparator.compare(this.key, key) == 0) {
+            V previous = getValue();
+            setValue(value);
+            return previous;
+        }
         if (comparator.compare(this.key, key) > 0) {
             if (this.left == null) {
                 this.left = new TreeMapNode<>(key, value);
             } else {
-                this.left.add(key, value, comparator);
+                return this.left.add(key, value, comparator);
             }
         } else {
             if (this.right == null) {
                 this.right = new TreeMapNode<>(key, value);
             } else {
-                this.right.add(key, value, comparator);
+                return this.right.add(key, value, comparator);
             }
         }
-
-        return this;
+        return null;
     }
 
     V find(K key, Comparator<K> comparator) {
-        if (this.key == key) return this.value;
+        if (comparator.compare(this.key, key) == 0) return this.value;
         if (comparator.compare(this.key, key) > 0) {
             if (this.left == null) return null;
             return this.left.find(key, comparator);
         }
-        else {
-            if (this.right == null) return null;
-            return this.right.find(key, comparator);
-        }
+        if (this.right == null) return null;
+        return this.right.find(key, comparator);
+    }
+
+    ArrayList<TreeMapNode<K, V>> subTrees() {
+        ArrayList<TreeMapNode<K, V>> subTrees = new ArrayList<>();
+        if (getLeft() != null) subTrees.add(getLeft());
+        if (getRight() != null) subTrees.add(getRight());
+        return subTrees;
     }
 }
 
 public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
-    private Comparator<K> comparator;
+    private final Comparator<K> comparator;
     public TreeBasedMap(Comparator<K> keyComparator) {
         this.comparator = keyComparator;
     }
     TreeMapNode<K, V> head;
 
     private class EntriesIterator implements Iterator<Entry<K, V>>, Iterable<Entry<K, V>> {
-        private Deque<TreeMapNode<K, V>> stack = new LinkedList<>();
-        private TreeMapNode<K, V> current = head;
+        private final Deque<TreeMapNode<K, V>> stack = new LinkedList<>();
 
         public EntriesIterator() {
+            TreeMapNode<K, V> current = head;
             while (current != null) {
                 stack.push(current);
                 current = current.getLeft();
@@ -137,7 +144,7 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
     }
 
     private class KeysIterator implements Iterator<K>, Iterable<K> {
-        private EntriesIterator entriesIterator;
+        private final EntriesIterator entriesIterator;
 
         public KeysIterator() {
             this.entriesIterator = new EntriesIterator();
@@ -161,7 +168,7 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
     }
 
     private class ValuesIterator implements Iterator<V>, Iterable<V> {
-        private EntriesIterator entriesIterator;
+        private final EntriesIterator entriesIterator;
 
         public ValuesIterator() {
             this.entriesIterator = new EntriesIterator();
@@ -222,8 +229,7 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
             head = new TreeMapNode<>(key, value);
             return null;
         }
-        this.head.add(key, value, comparator);
-        return null;
+        return this.head.add(key, value, comparator);
     }
 
     @Nullable
@@ -236,7 +242,50 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
     @Override
     public V remove(K key) {
         if (head == null) return null;
-        
+        if (comparator.compare(head.getKey(), key) == 0 && head.subTrees().isEmpty()) {
+            head = null;
+            return null;
+        }
+        TreeMapNode<K, V> parent = head;
+        TreeMapNode<K, V> current = head;
+        while (current != null) {
+            if (comparator.compare(current.getKey(), key) == 0) {
+                V val = current.getValue();
+                ArrayList<TreeMapNode<K, V>> subTrees = current.subTrees();
+                if (subTrees.isEmpty()) {
+                    if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
+                        parent.setLeft(null);
+                    } else {
+                        parent.setRight(null);
+                    }
+                } else if (subTrees.size() == 1) {
+                    if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
+                        parent.setLeft(subTrees.get(0));
+                    } else {
+                        parent.setRight(subTrees.get(0));
+                    }
+                } else {
+                    Iterable<Entry<K, V>> entries = getEntries();
+                    Iterator<Entry<K, V>> entriesIterator = entries.iterator();
+                    while (entriesIterator.hasNext()) {
+                        Entry<K, V> currentEntry = entriesIterator.next();
+                        if (comparator.compare(currentEntry.getKey(),key) == 0) {
+                            Entry<K, V> toRemove = entriesIterator.next();
+                            remove(toRemove.getKey());
+                            current.setKey(toRemove.getKey());
+                            current.setValue(toRemove.getValue());
+                        }
+                    }
+                }
+                return val;
+            }
+            parent = current;
+            if (comparator.compare(current.getKey(), key) > 0) {
+                current = current.getLeft();
+            } else {
+                current = current.getRight();
+            }
+        }
         return null;
     }
 

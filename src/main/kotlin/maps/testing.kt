@@ -1,14 +1,25 @@
 package maps
 
-class testing {
-}
-
 fun main() {
-    val map = TreeBasedMap<Int, String>(Int::compareTo)
-    map.put(15, "15")
-    map.put(14, "14")
-    map.put(17, "17")
-    map.put(16, "16")
-    map.remove(16)
-    map.entries.forEach { println(it) }
+//    val map = TreeBasedMap<Int, String>(Int::compareTo)
+//    map.put(5, "5")
+//    map.remove(5)
+    val map = HashMapBackedByTrees<String, Int>(String::compareTo)
+    for (i in 1..100) {
+        map.put(Entry(i.toString(), i))
+    }
+    for (i in 1..100) {
+        if (i != map[i.toString()]) println("1: ${i}")
+        if (i % 2 == 0) {
+            map.remove(i.toString())
+        }
+    }
+//    for (i in 1..100) {
+//        if (i % 4 == 0) {
+//            assertNull(map.get(i.toString()))
+//            assertFalse(map.contains(i.toString()))
+//            assertNull(map.set(i.toString(), i))
+//        }
+//    }
+    map.entries.sortedBy{it.key.toInt()}.forEach { println(it) }
 }
