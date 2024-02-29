@@ -83,16 +83,17 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
         key: K,
         value: V,
     ): V? {
+        var removed: V?
+        locks[lockHashingFunction(key)].withLock {
+            val bucket = buckets[hashingFunction(key)]
+            removed = bucket.remove(key)
+            bucket.put(key, value)
+            if (removed == null) numberOfEntries.incrementAndGet()
+        }
         if (numberOfEntries.get() + 1 > buckets.size * loadFactor) {
             resize()
         }
-        locks[lockHashingFunction(key)].withLock {
-            val bucket = buckets[hashingFunction(key)]
-            val removed = bucket.remove(key)
-            bucket.put(key, value)
-            if (removed == null) numberOfEntries.incrementAndGet()
-            return removed
-        }
+        return removed
     }
 
     override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
