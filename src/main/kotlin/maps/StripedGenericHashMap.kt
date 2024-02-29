@@ -19,6 +19,11 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
         size: Int = buckets.size,
     ): Int = key.hashCode() and (size - 1)
 
+    private fun lockHashingFunction(
+        key: K
+    ): Int = hashingFunction(key) and (locks.size - 1)
+
+
     override val entries: Iterable<Entry<K, V>>
         get() {
             try {
@@ -64,7 +69,7 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
     override fun contains(key: K): Boolean = get(key) != null
 
     override fun get(key: K): V? {
-        locks[hashingFunction(key) % locks.size].withLock {
+        locks[lockHashingFunction(key)].withLock {
             return buckets[hashingFunction(key)][key]
         }
     }
@@ -81,12 +86,11 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
         if (numberOfEntries.get() + 1 > buckets.size * loadFactor) {
             resize()
         }
-        val hash = hashingFunction(key)
-        locks[hash % locks.size].withLock {
-            val bucket = buckets[hash]
+        locks[lockHashingFunction(key)].withLock {
+            val bucket = buckets[hashingFunction(key)]
             val removed = bucket.remove(key)
             bucket.put(key, value)
-            numberOfEntries.incrementAndGet()
+            if (removed == null) numberOfEntries.incrementAndGet()
             return removed
         }
     }
@@ -94,9 +98,10 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
     override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
 
     override fun remove(key: K): V? {
-        locks[hashingFunction(key) and (locks.size - 1)].withLock {
-            numberOfEntries.decrementAndGet()
-            return buckets[hashingFunction(key)].remove(key)
+        locks[lockHashingFunction(key)].withLock {
+            val removed = buckets[hashingFunction(key)].remove(key)
+            if (removed != null) numberOfEntries.decrementAndGet()
+            return removed
         }
     }
 }
