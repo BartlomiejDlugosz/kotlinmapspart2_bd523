@@ -19,6 +19,7 @@ class TreeMapNode<K, V> {
 
     @Nullable
     private TreeMapNode<K, V> right = null;
+    public TreeMapNode<K, V> parent = null;
 
     Entry<K, V> getEntry() {
         return new Entry<>(this.key, this.value);
@@ -26,10 +27,12 @@ class TreeMapNode<K, V> {
 
     void setLeft(@Nullable TreeMapNode<K, V> left) {
         this.left = left;
+        if (this.left != null) this.left.parent = this;
     }
 
     void setRight(@Nullable TreeMapNode<K, V> right) {
         this.right = right;
+        if (this.right != null) this.right.parent = this;
     }
 
     @Nullable
@@ -96,14 +99,24 @@ class TreeMapNode<K, V> {
         if (getRight() != null) subTrees.add(getRight());
         return subTrees;
     }
+
+    TreeMapNode<K, V> getLargest() {
+        if (this.right == null) return this;
+        return this.right.getLargest();
+    }
+
+    TreeMapNode<K, V> getSmallest() {
+        if (this.left == null) return this;
+        return this.left.getSmallest();
+    }
 }
 
 public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
-    private final Comparator<K> comparator;
+    protected final Comparator<K> comparator;
     public TreeBasedMap(Comparator<K> keyComparator) {
         this.comparator = keyComparator;
     }
-    TreeMapNode<K, V> head;
+    TreeMapNode<K, V> head = null;
 
     private class EntriesIterator implements Iterator<Entry<K, V>>, Iterable<Entry<K, V>> {
         private final Deque<TreeMapNode<K, V>> stack = new LinkedList<>();
@@ -226,7 +239,7 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
     @Override
     public V put(K key, V value) {
         if (head == null) {
-            head = new TreeMapNode<>(key, value);
+            head = new TreeMapNode<K, V>(key, value);
             return null;
         }
         return this.head.add(key, value, comparator);
@@ -248,38 +261,25 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
             if (comparator.compare(current.getKey(), key) == 0) {
                 V val = current.getValue();
                 ArrayList<TreeMapNode<K, V>> subTrees = current.subTrees();
-                if (subTrees.isEmpty()) {
+                if (subTrees.isEmpty() || subTrees.size() == 1) {
+                    TreeMapNode<K, V> toSet = null;
+                    if (subTrees.size() == 1) toSet = subTrees.get(0);
                     if (current == head) {
-                        head = null;
+                        head = toSet;
                     } else {
                         if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
-                            parent.setLeft(null);
+                            parent.setLeft(toSet);
                         } else {
-                            parent.setRight(null);
-                        }
-                    }
-                } else if (subTrees.size() == 1) {
-                    if (current == head) {
-                        head = subTrees.get(0);
-                    } else {
-                        if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
-                            parent.setLeft(subTrees.get(0));
-                        } else {
-                            parent.setRight(subTrees.get(0));
+                            parent.setRight(toSet);
                         }
                     }
                 } else {
-                    Iterable<Entry<K, V>> entries = getEntries();
-                    Iterator<Entry<K, V>> entriesIterator = entries.iterator();
-                    while (entriesIterator.hasNext()) {
-                        Entry<K, V> currentEntry = entriesIterator.next();
-                        if (comparator.compare(currentEntry.getKey(),key) == 0) {
-                            Entry<K, V> toRemove = entriesIterator.next();
-                            remove(toRemove.getKey());
-                            current.setKey(toRemove.getKey());
-                            current.setValue(toRemove.getValue());
-                        }
-                    }
+                    assert current.getLeft() != null;
+                    TreeMapNode<K, V> toRemove = current.getLeft().getLargest();
+                    remove(toRemove.getKey());
+                    current.setKey(toRemove.getKey());
+                    current.setValue(toRemove.getValue());
+
                 }
                 return val;
             }
