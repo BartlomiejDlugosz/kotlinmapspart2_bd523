@@ -70,12 +70,14 @@ class TreeMapNode<K, V> {
         if (comparator.compare(this.key, key) > 0) {
             if (this.left == null) {
                 this.left = new TreeMapNode<>(key, value);
+                this.left.parent = this;
             } else {
                 return this.left.add(key, value, comparator);
             }
         } else {
             if (this.right == null) {
                 this.right = new TreeMapNode<>(key, value);
+                this.right.parent = this;
             } else {
                 return this.right.add(key, value, comparator);
             }
@@ -255,38 +257,41 @@ public class TreeBasedMap<K, V> implements CustomMutableMap<K, V> {
     @Override
     public V remove(K key) {
         if (head == null) return null;
-        TreeMapNode<K, V> parent = head;
         TreeMapNode<K, V> current = head;
         while (current != null) {
             if (comparator.compare(current.getKey(), key) == 0) {
                 V val = current.getValue();
                 ArrayList<TreeMapNode<K, V>> subTrees = current.subTrees();
-                if (subTrees.isEmpty() || subTrees.size() == 1) {
-                    TreeMapNode<K, V> toSet = null;
-                    if (subTrees.size() == 1) toSet = subTrees.get(0);
-                    if (current == head) {
-                        head = toSet;
-                    } else {
-                        if (parent.getLeft() != null && comparator.compare(parent.getLeft().getKey(), key) == 0) {
-                            parent.setLeft(toSet);
-                        } else {
-                            parent.setRight(toSet);
-                        }
-                    }
+                if (subTrees.size() < 2) {
+                    deleteNode(current);
                 } else {
+                    // current has 2 subtrees so definitely has left
                     assert current.getLeft() != null;
                     TreeMapNode<K, V> toRemove = current.getLeft().getLargest();
-                    remove(toRemove.getKey());
+                    deleteNode(toRemove);
                     current.setKey(toRemove.getKey());
                     current.setValue(toRemove.getValue());
-
                 }
                 return val;
             }
-            parent = current;
             current = comparator.compare(current.getKey(), key) > 0 ? current.getLeft() : current.getRight();
         }
         return null;
+    }
+
+    void deleteNode(TreeMapNode<K, V> toRemove) {
+        ArrayList<TreeMapNode<K, V>> subTrees = toRemove.subTrees();
+        TreeMapNode<K, V> toSet = null;
+        if (subTrees.size() == 1) toSet = subTrees.get(0);
+        if (toRemove == head) {
+            head = toSet;
+        } else {
+            if (toRemove.parent.getLeft() == toRemove) {
+                toRemove.parent.setLeft(toSet);
+            } else {
+                toRemove.parent.setRight(toSet);
+            }
+        }
     }
 
     @Override

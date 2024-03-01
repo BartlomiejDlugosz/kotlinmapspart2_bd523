@@ -19,10 +19,7 @@ abstract class StripedGenericHashMap<K, V>(bucketFactory: BucketFactory<K, V>, s
         size: Int = buckets.size,
     ): Int = key.hashCode() and (size - 1)
 
-    private fun lockHashingFunction(
-        key: K
-    ): Int = hashingFunction(key) and (locks.size - 1)
-
+    private fun lockHashingFunction(key: K): Int = hashingFunction(key) and (locks.size - 1)
 
     override val entries: Iterable<Entry<K, V>>
         get() {

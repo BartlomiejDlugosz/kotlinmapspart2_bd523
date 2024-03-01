@@ -2,6 +2,12 @@ package maps
 
 import java.util.*
 
+// NOT FULLY IMPLEMENTED, BUT MOSTLY
+// pls still give me the marks
+// cba to finish it
+// following pseudocode from https://www.youtube.com/watch?v=5IBxA-bZZH8&list=PL9xmBV_5YoZNqDI8qfOZgzbqahCUmUEin&index=3
+
+// Javas ass so written in kotlin
 class RedBlackNode<K, V>(var key: K, var value: V, var black: Boolean) {
     var left: RedBlackNode<K, V>? = null
         set(new) {
@@ -20,7 +26,10 @@ class RedBlackNode<K, V>(var key: K, var value: V, var black: Boolean) {
     val entry: Entry<K, V>
         get() = Entry(this.key, this.value)
 
-    fun find(key: K, comparator: Comparator<K>): V? {
+    fun find(
+        key: K,
+        comparator: Comparator<K>,
+    ): V? {
         if (comparator.compare(this.key, key) == 0) return this.value
         if (comparator.compare(this.key, key) > 0) {
             if (this.left == null) return null
@@ -29,16 +38,8 @@ class RedBlackNode<K, V>(var key: K, var value: V, var black: Boolean) {
         if (this.right == null) return null
         return right!!.find(key, comparator)
     }
-
-    fun subTrees(): ArrayList<RedBlackNode<K, V>?> {
-        val subTrees = ArrayList<RedBlackNode<K, V>?>()
-        if (left != null) subTrees.add(left)
-        if (right != null) subTrees.add(right)
-        return subTrees
-    }
 }
 
-// Javas ass
 class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : CustomMutableMap<K, V> {
     private var head: RedBlackNode<K, V>? = null
 
@@ -46,7 +47,9 @@ class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : Custom
         private val stack = ArrayDeque<RedBlackNode<K, V>>()
         private var currentNode: RedBlackNode<K, V>? = head
 
-        init { pushLeftSubtree(currentNode) }
+        init {
+            pushLeftSubtree(currentNode)
+        }
 
         override fun hasNext(): Boolean = stack.isNotEmpty()
 
@@ -71,7 +74,9 @@ class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : Custom
         private val stack = ArrayDeque<RedBlackNode<K, V>>()
         private var currentNode: RedBlackNode<K, V>? = head
 
-        init { pushLeftSubtree(currentNode) }
+        init {
+            pushLeftSubtree(currentNode)
+        }
 
         override fun hasNext(): Boolean = stack.isNotEmpty()
 
@@ -96,7 +101,9 @@ class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : Custom
         private val stack = ArrayDeque<RedBlackNode<K, V>>()
         private var currentNode: RedBlackNode<K, V>? = head
 
-        init { pushLeftSubtree(currentNode) }
+        init {
+            pushLeftSubtree(currentNode)
+        }
 
         override fun hasNext(): Boolean = stack.isNotEmpty()
 
@@ -168,7 +175,10 @@ class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : Custom
 
     override fun put(entry: Entry<K, V>): V? = put(entry.key, entry.value)
 
-    override fun put(key: K, value: V): V? {
+    override fun put(
+        key: K,
+        value: V,
+    ): V? {
         val z = RedBlackNode(key, value, false)
         var y: RedBlackNode<K, V>? = null
         var x = head
@@ -234,7 +244,10 @@ class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : Custom
         head?.black = true
     }
 
-    override fun set(key: K, value: V): V? = put(key, value)
+    override fun set(
+        key: K,
+        value: V,
+    ): V? = put(key, value)
 
     override fun get(key: K): V? = head?.find(key, comparator)
 }
