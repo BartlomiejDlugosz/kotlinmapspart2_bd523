@@ -41,7 +41,7 @@ class RedBlackNode<K, V>(var key: K, var value: V, var black: Boolean) {
 }
 
 class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : CustomMutableMap<K, V> {
-    private var head: RedBlackNode<K, V>? = null
+    var head: RedBlackNode<K, V>? = null
 
     private inner class InOrderEntriesIterator : Iterator<Entry<K, V>>, Iterable<Entry<K, V>> {
         private val stack = ArrayDeque<RedBlackNode<K, V>>()
@@ -185,11 +185,12 @@ class RedBlackTreeBasedMap<K, V>(private val comparator: Comparator<K>) : Custom
 
         while (x != null) {
             y = x
-            if (comparator.compare(z.key, x.key) < 0) {
-                x = x.left
-            } else {
-                x = x.right
-            }
+            x =
+                if (comparator.compare(z.key, x.key) < 0) {
+                    x.left
+                } else {
+                    x.right
+                }
         }
 
         if (y == null) {
@@ -257,5 +258,9 @@ fun main() {
     for (i in 1..10) {
         tree.put(i, i.toString())
     }
+    for (i in 1..10) {
+        if (!tree.contains(i)) println("FAILED")
+    }
+
     tree.entries.forEach { println(it) }
 }
